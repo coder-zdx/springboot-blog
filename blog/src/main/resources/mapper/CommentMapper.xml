@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.zdx.dao.ICommentDao">
+
+<!--    <resultMap id="Comment_Blog" type="comment">-->
+<!--        <id property="id" column="cid"></id>-->
+<!--        <result property="nickname" column="nickname"></result>-->
+<!--        <result property="email" column="email"></result>-->
+<!--        <result property="avatar" column="avatar"></result>-->
+<!--        <result property="content" column="content"></result>-->
+<!--        <result property="createTime" column="createTime"></result>-->
+
+<!--        <collection property="comment_blog" ofType="com.zdx.domain.Blog">-->
+<!--            <id property="id" column="id"></id>-->
+<!--            <result property="title" column="title"></result>-->
+<!--            <result property="content" column="content"></result>-->
+<!--            <result property="firstPicture" column="firstPicture"></result>-->
+<!--            <result property="flag" column="flag"></result>-->
+<!--            <result property="views" column="views"></result>-->
+<!--            <result property="appreciation" column="appreciation"></result>-->
+<!--            <result property="shareStatement" column="shareStatement"></result>-->
+<!--            <result property="commentable" column="commentable"></result>-->
+<!--            <result property="recommend" column="recommend"></result>-->
+<!--            <result property="published" column="published"></result>-->
+<!--            <result property="updateTime" column="updateTime"></result>-->
+<!--            <result property="createTime" column="createTime"></result>-->
+<!--            <result property="description" column="description"></result>-->
+<!--        </collection>-->
+<!--    </resultMap>-->
+
+    <!-- 通过blog的id查询所有评论 -->
+    <select id="listCommentByBlogId" resultType="comment" parameterType="java.lang.Integer">
+        SELECT c.* FROM t_comment c
+        <where>
+            c.comment_blog = #{id}
+        </where>
+        ORDER BY c.createTime desc
+    </select>
+
+    <!-- 通过父级id查询comment -->
+    <select id="findParentByCommentId" parameterType="java.lang.Integer" resultType="comment">
+        SELECT pc.* FROM t_comment c,(SELECT id,content FROM t_comment) AS pc
+        <where>
+            pc.id=c.parent_comment_id AND pc.id = #{id};
+        </where>
+    </select>
+
+    <!-- 添加评论 -->
+    <insert id="saveComment" parameterType="comment">
+        <selectKey keyProperty="id" keyColumn="id" order="AFTER" resultType="java.lang.Integer">
+            select last_insert_id();
+        </selectKey>
+        INSERT INTO t_comment(nickname, email,avatar, content,createTime, parent_comment_id,comment_blog)
+        VALUES(#{nickname} ,#{email},#{avatar}, #{content},#{createTime}, #{parentCommentId},#{comments_blog.id})
+    </insert>
+
+
+
+    <!--查询父级评论-->
+    <select id="findByParentIdNull" resultType="comment" parameterType="java.lang.Integer">
+        select *
+        from t_comment c
+        where c.parent_comment_id = #{ParentId} and c.comment_blog = #{blogId}
+        order by c.createTime desc
+    </select>
+
+    <!--查询一级回复-->
+    <select id="findByParentIdNotNull" resultType="comment" parameterType="java.lang.Integer">
+        select *
+        from t_comment c
+        where c.parent_comment_id = #{id} and c.comment_blog = #{blogId}
+        order by c.createTime desc
+    </select>
+
+    <!--查询二级以及所有子集回复-->
+    <select id="findByReplayId" resultType="comment" parameterType="java.lang.Integer">
+        select *
+        from t_comment c
+        where c.parent_comment_id = #{ChildId} and c.comment_blog = #{blogId}
+        order by c.createTime desc
+    </select>
+
+
+</mapper>

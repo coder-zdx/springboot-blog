@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zdx.dao.IUserDao">
+
+    <select id="checkUser" resultType="user">
+        <!-- id为方法名，resultType为返回到什么类 -->
+        select * from t_user
+        <where>
+            <if test = "username != null and password != null" >
+                and username = #{username}
+                and password = #{password}
+            </if>
+        </where>
+    </select>
+
+    <select id="findUserBlogByBlogId" resultType="user" parameterType="java.lang.Integer">
+        SELECT u.* FROM t_user u,t_blog b WHERE b.id = #{id}
+    </select>
+
+</mapper>

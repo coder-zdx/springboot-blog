@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+
+<mapper namespace="com.zdx.dao.ITypeDao">
+
+    <resultMap id="Type_Blog" type="type">
+        <id property="id" column="tyid"></id>
+        <result property="name" column="name"></result>
+
+        <collection property="type_blogs" ofType="com.zdx.domain.Blog">
+            <id property="id" column="id"></id>
+            <result property="title" column="title"></result>
+            <result property="content" column="content"></result>
+            <result property="firstPicture" column="firstPicture"></result>
+            <result property="flag" column="flag"></result>
+            <result property="views" column="views"></result>
+            <result property="appreciation" column="appreciation"></result>
+            <result property="shareStatement" column="shareStatement"></result>
+            <result property="commentable" column="commentable"></result>
+            <result property="recommend" column="recommend"></result>
+            <result property="published" column="published"></result>
+            <result property="updateTime" column="updateTime"></result>
+            <result property="createTime" column="createTime"></result>
+            <result property="description" column="description"></result>
+        </collection>
+    </resultMap>
+
+    <!-- 添加分类 -->
+    <insert id="saveType" parameterType="type"  >
+        insert into t_type(name) values(#{name});
+    </insert>
+
+    <!-- 通过id获取分类 -->
+    <select id="getType" resultType="type" parameterType="java.lang.Integer">
+        select * from t_type
+        <where>
+            <if test = "id != null" >
+                and id = #{id};
+            </if>
+        </where>
+    </select>
+
+    <!-- 分类进行分页 -->
+    <select id="pageType" resultType="type">
+        <!-- 不能加; -->
+        select * from t_type
+
+    </select>
+
+    <!-- 修改分类 -->
+    <update id="updateType"  parameterType="type">
+        update t_type set name = #{type.name} where id = #{id};
+    </update>
+
+    <!-- 删除分类 -->
+    <delete id="deleteType"  parameterType="java.lang.Integer">
+        delete from t_type where id = #{id};
+    </delete>
+
+    <!-- 通过分类名获取分类 -->
+    <select id="getTypeByName" resultType="type" parameterType="java.lang.String">
+        select * from t_type
+        <where>
+            <if test = "name != null" >
+                and name = #{name};
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询所有分类 -->
+    <select id="listAllType" resultType="type">
+        select * from t_type;
+    </select>
+
+    <!-- 通过查询所有分类，查询其中包含的博客 -->
+    <select id="findAllType_Blog" resultMap="Type_Blog">
+        select b.*,ty.id as tyid,ty.name
+        from t_blog b
+        join t_type ty on
+        b.blogs_type = ty.id
+        <where>
+            and b.published = true
+        </where>
+    </select>
+
+    <!-- 通过blogid获取其对应type -->
+    <select id="findType_BlogById" resultMap="Type_Blog" parameterType="java.lang.Integer">
+        SELECT b.*,ty.id as tyid,ty.name FROM t_type ty JOIN t_blog b ON b.blogs_type = ty.id
+        <where>
+            and b.published = TRUE AND b.id = #{id}
+        </where>
+    </select>
+
+
+
+</mapper>

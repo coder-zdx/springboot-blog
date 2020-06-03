@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+
+<mapper namespace="com.zdx.dao.ITagDao">
+
+    <!-- blog表与tag表关系resultMap -->
+    <resultMap id="Tag_Blog" type="tag">
+        <id property="id" column="tid"></id>
+        <result property="name" column="name"></result>
+
+        <collection property="tags_blogs" ofType="com.zdx.domain.Blog">
+            <id property="id" column="id"></id>
+            <result property="title" column="title"></result>
+            <result property="content" column="content"></result>
+            <result property="firstPicture" column="firstPicture"></result>
+            <result property="flag" column="flag"></result>
+            <result property="views" column="views"></result>
+            <result property="appreciation" column="appreciation"></result>
+            <result property="shareStatement" column="shareStatement"></result>
+            <result property="commentable" column="commentable"></result>
+            <result property="recommend" column="recommend"></result>
+            <result property="published" column="published"></result>
+            <result property="updateTime" column="updateTime"></result>
+            <result property="createTime" column="createTime"></result>
+            <result property="description" column="description"></result>
+        </collection>
+    </resultMap>
+
+    <!-- 保存标签 -->
+    <insert id="saveTag" parameterType="tag"  >
+        insert into t_tag(name) values(#{name});
+    </insert>
+
+    <!-- 分页查询标签 -->
+    <select id="pageTag" resultType="tag">
+        <!-- 不能加; -->
+        select * from t_tag
+    </select>
+
+    <!-- 通过id查询标签 -->
+    <select id="getTag" resultType="tag" parameterType="java.lang.Integer">
+        select * from t_tag
+        <where>
+            <if test = "id != null" >
+                and id = #{id};
+            </if>
+        </where>
+    </select>
+
+    <!-- 修改标签 -->
+    <update id="updateTag"  parameterType="tag">
+        update t_tag set name = #{tag.name} where id = #{id};
+    </update>
+
+    <!-- 删除标签 -->
+    <delete id="deleteTag"  parameterType="java.lang.Integer">
+        delete from t_tag where id = #{id};
+    </delete>
+
+    <!-- 通过标签名查询标签 -->
+    <select id="getTagByName" resultType="tag" parameterType="java.lang.String">
+        select * from t_tag
+        <where>
+            <if test = "name != null" >
+                and name = #{name};
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询所有 -->
+    <select id="listAllTag" resultType="tag">
+        select * from t_tag;
+    </select>
+
+    <!-- 查询一个博客所有tags -->
+    <select id="findBlog_TagAll" resultMap="Tag_Blog">
+        select b.id,ta.id,ta.name from t_blog b
+        left outer join t_blog_tag bt on b.id = bt.t_blog_forid
+        left outer join t_tag ta on ta.id = bt.t_tag_forid
+        <where>
+            <if test="id != null">
+                and b.id = #{id}
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询一个标签所有博客 -->
+    <select id="findAllTag_Blog" resultMap="Tag_Blog">
+        select b.*,ta.id as tid, ta.name FROM t_blog b
+        LEFT OUTER JOIN t_blog_tag bt ON b.id = bt.t_blog_forid
+        LEFT OUTER JOIN t_tag ta ON ta.id = bt.t_tag_forid
+        <where>
+            and b.published = true
+        </where>
+    </select>
+
+</mapper>

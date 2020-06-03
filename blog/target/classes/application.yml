@@ -1,0 +1,46 @@
+#-------- 配置thymeleaf的HTML版本------#
+spring:
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: utf-8
+    mode: html
+  #-------- 连接Mybatis--------#
+  #-------- 1.配置数据库连接信息--------#
+  #-------- url为8.0以上，后面加的未知--------#
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/blog?useUnicode=true&characterEncoding=utf-8&serverTimezone=UTC
+    username: root
+    password: root
+
+#-------- 2.配置Mybatis连接信息，一为扫描的包别名，二为映射文件位置--------#
+mybatis:
+  type-aliases-package: com.zdx.domain
+  mapper-locations: classpath:mapper/*Mapper.xml
+
+#-------- 配置日志部分--------#
+
+logging:
+  level:
+    root: info
+    com.zdx: info
+#-------- file属性的path或者name，只能配置一样，配置path，默认名就是spring.log --------#
+#-------- file属性的path或者name，只能配置一样，配置name，默认位置就是项目下 --------#
+#-------- 之前所用logback—spring不好用 --------#
+  file:
+    path: ./logs
+
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  params: count=countSql
+  support-methods-arguments: true
+
+#配置评论头像
+comment.avatar: /images/avatar.png
+
+
+
+

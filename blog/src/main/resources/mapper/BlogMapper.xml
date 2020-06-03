@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.zdx.dao.IBlogDao">
+
+    <!-- blog表与tag表关系resultMap -->
+    <resultMap id="blogTag" type="blog">
+        <id property="id" column="id"></id>
+        <result property="title" column="title"></result>
+        <result property="content" column="content"></result>
+        <result property="firstPicture" column="firstPicture"></result>
+        <result property="flag" column="flag"></result>
+        <result property="views" column="views"></result>
+        <result property="appreciation" column="appreciation"></result>
+        <result property="shareStatement" column="shareStatement"></result>
+        <result property="commentable" column="commentable"></result>
+        <result property="recommend" column="recommend"></result>
+        <result property="published" column="published"></result>
+        <result property="updateTime" column="updateTime"></result>
+        <result property="createTime" column="createTime"></result>
+        <result property="description" column="description"></result>
+
+        <collection property="blogs_tags" ofType="com.zdx.domain.Tag">
+            <id property="id" column="taid"></id>
+            <result property="name" column="name"></result>
+        </collection>
+    </resultMap>
+
+    <!-- blog与type关系resultMap -->
+    <resultMap id="blogType" type="blog">
+        <id property="id" column="id"></id>
+        <result property="title" column="title"></result>
+        <result property="content" column="content"></result>
+        <result property="firstPicture" column="firstPicture"></result>
+        <result property="flag" column="flag"></result>
+        <result property="views" column="views"></result>
+        <result property="appreciation" column="appreciation"></result>
+        <result property="shareStatement" column="shareStatement"></result>
+        <result property="commentable" column="commentable"></result>
+        <result property="recommend" column="recommend"></result>
+        <result property="published" column="published"></result>
+        <result property="updateTime" column="updateTime"></result>
+        <result property="createTime" column="createTime"></result>
+        <result property="description" column="description"></result>
+
+        <association property="blogs_type" column="blogs_type" javaType="com.zdx.domain.Type">
+            <id property="id" column="tyid"></id>
+            <result property="name" column="name"></result>
+        </association>
+    </resultMap>
+
+
+    <!-- blog表与comment表关系resultMap -->
+    <resultMap id="blogComment" type="blog">
+        <id property="id" column="id"></id>
+        <result property="title" column="title"></result>
+        <result property="content" column="content"></result>
+        <result property="firstPicture" column="firstPicture"></result>
+        <result property="flag" column="flag"></result>
+        <result property="views" column="views"></result>
+        <result property="appreciation" column="appreciation"></result>
+        <result property="shareStatement" column="shareStatement"></result>
+        <result property="commentable" column="commentable"></result>
+        <result property="recommend" column="recommend"></result>
+        <result property="published" column="published"></result>
+        <result property="updateTime" column="updateTime"></result>
+        <result property="createTime" column="createTime"></result>
+        <result property="description" column="description"></result>
+
+        <collection property="blog_comments" ofType="com.zdx.domain.Comment">
+            <id property="id" column="cid"></id>
+            <result property="nickname" column="nickname"></result>
+            <result property="email" column="email"></result>
+            <result property="avatar" column="avatar"></result>
+            <result property="content" column="content"></result>
+            <result property="createTime" column="createTime"></result>
+        </collection>
+    </resultMap>
+
+    <!-- 保存博客 -->
+    <insert id="saveBlog" parameterType="blog" >
+        <selectKey keyProperty="id" keyColumn="id" order="AFTER" resultType="java.lang.Integer">
+            select last_insert_id();
+        </selectKey>
+        insert into t_blog(
+        title,
+        content,
+        firstPicture,
+        flag,
+        views,
+        description,
+        appreciation,
+        shareStatement,
+        commentable,
+        published,
+        recommend,
+        createTime,
+        updateTime,
+        blogs_type,
+        blog_user
+        ) values(
+        #{title},
+        #{content},
+        #{firstPicture},
+        #{flag},
+        #{views},
+        #{description},
+        #{appreciation},
+        #{shareStatement},
+        #{commentable},
+        #{published},
+        #{recommend},
+        #{createTime},
+        #{updateTime},
+        #{blogs_type.id},
+        #{blogs_user.id}
+        )
+    </insert>
+
+    <!-- 分页查询，不加搜索情况 -->
+    <select id="pageBlog" resultMap="blogType" parameterType="blog">
+        select
+        b.*,
+        ty.id as tyid,
+        ty.name
+        from t_blog b
+        join t_type ty
+        on b.blogs_type = ty.id
+    </select>
+
+    <!-- 分页查询，加搜索情况 -->
+    <select id="searchPageBlog" resultMap="blogType" parameterType="blog">
+        select
+        b.id,
+        b.title,
+        b.recommend,
+        b.published,
+        b.updateTime,
+        ty.id as tyid,
+        ty.name from t_blog b
+        join t_type ty
+        on b.blogs_type = ty.id
+        <where>
+        <if test="titleName != null">
+            and b.title like "%"#{titleName}"%"
+        </if>
+        <if test = "typeId != null">
+            and b.blogs_type = #{typeId}
+        </if>
+        <if test = "recommend == false">
+            and b.recommend = 0
+        </if>
+        <if test = "recommend == true">
+            and b.recommend = 1
+        </if>
+
+        </where>
+    </select>
+
+    <!-- 添加博客与标签中间表 -->
+    <insert id="saveBlog_Tag" parameterType="java.util.Map">
+        insert into t_blog_tag(
+        t_blog_forid,
+        t_tag_forid
+        ) values
+        <foreach collection="tagIds" item="tid" separator=",">
+            (#{blogId},#{tid})
+        </foreach>
+    </insert>
+
+    <!-- 删除博客 -->
+    <delete id="deleteBlog"  parameterType="java.lang.Integer">
+        delete from t_blog
+        <where>
+            <if test="id != null">
+                id = #{id};
+            </if>
+        </where>
+    </delete>
+
+    <!-- 修改博客 -->
+    <update id="updateBlog"  parameterType="blog">
+        update t_blog set
+        title = #{blog.title},
+        content = #{blog.content},
+        firstPicture = #{blog.firstPicture},
+        flag = #{blog.flag},
+        description = #{blog.description},
+        views = #{blog.views},
+        appreciation = #{blog.appreciation},
+        shareStatement = #{blog.shareStatement},
+        commentable = #{blog.commentable},
+        published = #{blog.published},
+        recommend = #{blog.recommend},
+        updateTime = #{blog.updateTime},
+        blogs_type = #{blog.blogs_type.id}
+        where id = #{id};
+    </update>
+
+    <!-- 为了成功修改博客，需要将之前中间表关系删除，再重新添加 -->
+    <delete id="deleteBlog_Tag" parameterType="java.lang.Integer">
+        delete from t_blog_tag where t_blog_forid = #{blog_forid};
+    </delete>
+
+    <!-- 通过id查询blog,不包含所有 -->
+    <select id="getBlogById" parameterType="java.lang.Integer" resultType="blog">
+        select * from t_blog b
+        <where>
+            <if test="id != null">
+                and b.id = #{id}
+            </if>
+        </where>
+    </select>
+
+    <!-- 通过id查询blog,并包含type -->
+    <select id="getBlog_TypeById" parameterType="java.lang.Integer" resultMap="blogType">
+        select b.*, ty.id as tyid,ty.name
+        from t_blog b
+        join t_type ty
+        on b.blogs_type = ty.id
+        <where>
+            <if test="id != null">
+                and b.id = #{id}
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询blog即关联type ，排除草稿状态 -->
+    <select id="pageBlogOutPublished" resultMap="blogType" parameterType="blog">
+        select
+        b.*, ty.id as tyid, ty.name
+        from t_blog b
+        join t_type ty
+        on b.blogs_type = ty.id
+        <where>
+            and b.published = true;
+        </where>
+    </select>
+
+    <!-- 查询发布状态博客总数 -->
+    <select id="findPublishedBlog" resultType="java.lang.Integer">
+        select count(id) from t_blog where published = true;
+    </select>
+
+    <!-- 查询所有推荐博客并发布状态，要求按更新时间的10条 -->
+    <select id="findRecommendBlog" resultType="blog">
+        SELECT b.* FROM t_blog b
+        <where>
+            and b.recommend = TRUE AND b.published = TRUE
+        </where>
+         ORDER BY b.updateTime DESC LIMIT 0,10;
+    </select>
+
+    <!-- 通过关键词搜索博客标题或描述，原视频中为全文搜索 -->
+    <select id="findSearchResult" resultMap="blogType" parameterType="java.lang.String">
+        select
+        b.*, ty.id as tyid, ty.name
+        from t_blog b
+        join t_type ty
+        on b.blogs_type = ty.id
+        <where>
+            and b.published = true
+            and b.title LIKE "%"#{searchtext}"%"
+            or b.description LIKE "%"#{searchtext}"%"
+        </where>
+    </select>
+
+
+    <!-- 查询指定id下的blog，并查询其中tags -->
+    <select id="getBlog_TagById" resultMap="blogTag" parameterType="java.lang.Integer">
+        SELECT b.*,ta.id as taid,ta.name FROM t_blog b
+        LEFT OUTER JOIN t_blog_tag bt ON b.id = bt.t_blog_forid
+        LEFT OUTER JOIN t_tag ta ON ta.id = bt.t_tag_forid
+        <where>
+            and b.published = TRUE
+            AND b.id = #{id};
+        </where>
+    </select>
+
+    <!-- 查询所有blog与对应的tag -->
+    <select id="findAllBlog_Tag" resultMap="blogTag" parameterType="java.lang.Integer">
+        SELECT b.*,ta.id as taid, ta.name FROM t_blog b
+        LEFT OUTER JOIN t_blog_tag bt ON b.id = bt.t_blog_forid
+        LEFT OUTER JOIN t_tag ta ON ta.id = bt.t_tag_forid
+        <where>
+            and b.published = TRUE
+            and ta.id = #{id}
+        </where>
+    </select>
+
+    <!-- 通过查询所有分类，查询其中包含的博客 -->
+    <select id="findAllBlog_Type" resultMap="blogType" parameterType="java.lang.Integer">
+        select b.*,ty.id as tyid,ty.name
+        from t_blog b
+        join t_type ty on
+        b.blogs_type = ty.id
+        <where>
+            and b.published = true
+            and ty.id = #{id}
+        </where>
+    </select>
+
+    <!-- 获取博客年限，封装到String集合 -->
+    <select id="findBlogYears" resultType="string">
+        SELECT year(b.updateTime) as year from t_blog b group by year(b.updateTime) order by year desc;
+    </select>
+
+    <!-- 按年限获取博客 -->
+    <select id="findBlogByYears" resultType="blog" parameterType="string">
+        SELECT b.* FROM t_blog b
+        <where>
+            and YEAR(b.updateTime) = #{year} order by b.updateTime desc
+        </where>
+    </select>
+
+    <!-- 查询推荐并发布的最新的三个博客 -->
+    <select id="findRecommendBlogTopThree" resultType="blog">
+        SELECT * FROM t_blog b
+        <where>
+            b.recommend = TRUE AND b.published = TRUE ORDER BY b.updateTime DESC LIMIT 0,3
+        </where>
+    </select>
+
+    <!-- 通过blog的id增加浏览数目 -->
+    <update id="updateBlogViews" parameterType="java.lang.Integer">
+        UPDATE t_blog b SET b.views = b.views + 1
+        <where>
+            id = #{id};
+        </where>
+    </update>
+
+    <!-- 向博客中添加评论 -->
+    <select id="findBlog_CommentById" parameterType="java.lang.Integer" resultMap="blogComment">
+        SELECT c.* FROM t_comment c JOIN t_blog b ON c.comment_blog = b.id WHERE b.id = #{id}
+    </select>
+
+
+
+
+</mapper>
